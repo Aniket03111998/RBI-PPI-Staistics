@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.claude/
+*.csv
+!data/entity_aliases.csv
+.streamlit/secrets.toml

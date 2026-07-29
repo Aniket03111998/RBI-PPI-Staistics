@@ -1,0 +1,42 @@
+name: Monthly data refresh
+
+on:
+  schedule:
+    # 20th of every month, 09:00 UTC. RBI usually publishes mid-month; if a month's
+    # file isn't out yet, refresh.py just finds nothing new and the job is a no-op.
+    - cron: '0 9 20 * *'
+  workflow_dispatch: {}  # lets you trigger it manually from the GitHub Actions tab
+
+permissions:
+  contents: write  # needed to commit the refreshed database back to the repo
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Install Playwright browser (CAPTCHA fallback)
+        run: playwright install --with-deps chromium
+
+      - name: Run refresh
+        run: python -m ppi.refresh
+
+      - name: Commit updated data if anything changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/
+          if git diff --cached --quiet; then
+            echo "No data changes — nothing to commit."
+          else
+            git commit -m "Automated monthly data refresh"
+            git push
+          fi
