@@ -22,13 +22,16 @@ if not st.session_state.get("visitor_verified"):
     st.caption("Quick intro before you dive in — takes 5 seconds.")
     with st.form("visitor_gate"):
         name = st.text_input("Your name")
+        email = st.text_input("Your email")
         linkedin_url = st.text_input("Your LinkedIn profile URL")
         submitted = st.form_submit_button("Continue to dashboard")
     if submitted:
-        if not name.strip() or not linkedin_url.strip():
-            st.warning("Both fields are required.")
+        if not name.strip() or not email.strip() or not linkedin_url.strip():
+            st.warning("All fields are required.")
+        elif "@" not in email:
+            st.warning("Enter a valid email address.")
         else:
-            log_visitor(name.strip(), linkedin_url.strip())
+            log_visitor(name.strip(), email.strip(), linkedin_url.strip())
             st.session_state["visitor_verified"] = True
             st.rerun()
     st.stop()
