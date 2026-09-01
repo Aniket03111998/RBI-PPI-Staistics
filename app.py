@@ -13,8 +13,25 @@ from ppi.analytics import (
 )
 from ppi.config import DEFAULT_METRIC, MATERIALITY_THRESHOLD, TOP_N
 from ppi.load import get_conn
+from ppi.visitor_log import log_visitor
 
 st.set_page_config(page_title="RBI Entity-wise PPI Statistics", layout="wide")
+
+if not st.session_state.get("visitor_verified"):
+    st.title("RBI Entity-wise PPI Statistics")
+    st.caption("Quick intro before you dive in — takes 5 seconds.")
+    with st.form("visitor_gate"):
+        name = st.text_input("Your name")
+        linkedin_url = st.text_input("Your LinkedIn profile URL")
+        submitted = st.form_submit_button("Continue to dashboard")
+    if submitted:
+        if not name.strip() or not linkedin_url.strip():
+            st.warning("Both fields are required.")
+        else:
+            log_visitor(name.strip(), linkedin_url.strip())
+            st.session_state["visitor_verified"] = True
+            st.rerun()
+    st.stop()
 
 INSTRUMENT_ICON = {"card": "💳", "wallet": "👛", "both": "💳👛", "neither": "—"}
 INSTRUMENT_LABEL = {"card": "Cards only", "wallet": "Wallets only", "both": "Cards & Wallets", "neither": "No activity"}
